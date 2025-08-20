@@ -343,35 +343,19 @@ export default function IpesPage() {
       </div>
 
       <div className="relative h-screen">
+        <div ref={mapRef} className="w-full h-full" />
         {filteredTrees.length === 0 && !isLoadingLocation ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🌳</div>
-              <h2 className="text-lg font-semibold text-foreground mb-2">
-                {currentCity
-                  ? `Nenhum Ipê encontrado em ${currentCity}`
-                  : "Nenhum Ipê encontrado na sua região"}
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                {currentCity
-                  ? "Seja o primeiro a fotografar um Ipê na sua cidade!"
-                  : "Comece fotografando seu primeiro Ipê!"}
-              </p>
-              <Button
-                onClick={handleTakePhoto}
-                disabled={isCapturing}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                {isCapturing ? "Capturando..." : "Fotografar Ipê"}
-              </Button>
-            </div>
-          </div>
+          <Button
+            onClick={handleTakePhoto}
+            disabled={isCapturing}
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg z-[1000] px-6 py-3 h-auto"
+          >
+            <Camera className="h-5 w-5 mr-2" />
+            {isCapturing
+              ? "Capturando..."
+              : `Fotografar primeiro Ipê de ${currentCity || "sua região"}`}
+          </Button>
         ) : (
-          <div ref={mapRef} className="w-full h-full" />
-        )}
-
-        {filteredTrees.length > 0 && (
           <Button
             onClick={handleTakePhoto}
             disabled={isCapturing}
