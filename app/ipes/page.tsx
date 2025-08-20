@@ -47,15 +47,15 @@ export default function IpesPage() {
   );
   const [pendingPhoto, setPendingPhoto] = useState<File | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
+  const mapInstanceRef = useRef<L.Map>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadTreesAndLocation = async () => {
       const existingTrees = JSON.parse(
         localStorage.getItem("ipe-trees") || "[]",
-      );
-      const treesWithDates = existingTrees.map((tree: any) => ({
+      ) as IpeTree[];
+      const treesWithDates = existingTrees.map((tree) => ({
         ...tree,
         timestamp: new Date(tree.timestamp),
       }));
@@ -132,11 +132,11 @@ export default function IpesPage() {
 
       const existingTrees = JSON.parse(
         localStorage.getItem("ipe-trees") || "[]",
-      );
+      ) as IpeTree[];
       const updatedTrees = [newTree, ...existingTrees];
       localStorage.setItem("ipe-trees", JSON.stringify(updatedTrees));
 
-      const treesWithDates = updatedTrees.map((tree: any) => ({
+      const treesWithDates = updatedTrees.map((tree) => ({
         ...tree,
         timestamp: new Date(tree.timestamp),
       }));

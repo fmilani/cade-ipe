@@ -8,7 +8,7 @@ export interface LocationInfo {
 export async function reverseGeocode(
   latitude: number,
   longitude: number,
-): Promise<LocationInfo | null> {
+): Promise<LocationInfo | undefined> {
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=pt-BR`,
@@ -39,6 +39,6 @@ export async function reverseGeocode(
     };
   } catch (error) {
     console.error("Error in reverse geocoding:", error);
-    return null;
+    return undefined;
   }
 }
