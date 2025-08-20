@@ -297,7 +297,10 @@ export default function IpesPage() {
             <img src="${tree.imageUrl}" alt="Ipê" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />
             <div style="font-size: 12px; color: #666; margin-bottom: 4px;">${formatDate(tree.timestamp)}</div>
             ${tree.location.address ? `<div style="font-size: 12px; color: #666; margin-bottom: 4px;">${getSimplifiedAddress(tree.location.address)}</div>` : ""}
-            ${tree.personName ? `<div style="font-size: 11px; color: #888; font-style: italic;">por ${tree.personName}</div>` : ""}
+            ${tree.personName ? `<div style="font-size: 11px; color: #888; font-style: italic; margin-bottom: 8px;">por ${tree.personName}</div>` : ""}
+<a href="https://www.google.com/maps/dir/?api=1&destination=${tree.location.latitude},${tree.location.longitude}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #4285F4; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-top: 4px;">
+              📍 Como chegar
+            </a>
           </div>
         `;
 
@@ -348,7 +351,7 @@ export default function IpesPage() {
           <Button
             onClick={handleTakePhoto}
             disabled={isCapturing}
-            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg z-[1000] px-6 py-3 h-auto"
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg z-[1000] px-6 py-3 h-auto rounded-full"
           >
             <Camera className="h-5 w-5 mr-2" />
             {isCapturing
