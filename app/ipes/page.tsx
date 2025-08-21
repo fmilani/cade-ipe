@@ -170,17 +170,7 @@ export default function IpesPage() {
     }
   }, [filteredTrees, userLocation, isLoadingLocation]);
 
-  const handleTakePhoto = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleTakePhoto = async () => {
     try {
       console.log("Checking for nearby Ipês...");
       const position = await new Promise<GeolocationPosition>(
@@ -207,14 +197,22 @@ export default function IpesPage() {
       }
 
       console.log("No nearby Ipês found, proceeding with photo capture");
-      setPendingPhoto(file);
-      setShowNameDialog(true);
     } catch (error) {
       console.error("Error checking location for duplicates:", error);
-      // If location check fails, still allow photo capture
-      setPendingPhoto(file);
-      setShowNameDialog(true);
     }
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setPendingPhoto(file);
+    setShowNameDialog(true);
   };
 
   const handlePhotoWithName = async () => {
