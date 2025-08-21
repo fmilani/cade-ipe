@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LocationInfo } from "@/lib/geocoding";
 
 interface IpeTree {
   id: string;
@@ -14,7 +15,7 @@ interface IpeTree {
     address?: string;
     city?: string;
     state?: string;
-    locationInfo?: any;
+    locationInfo?: LocationInfo;
   };
   timestamp: Date;
   personName?: string;
@@ -32,8 +33,8 @@ export default function IpeDetailPage() {
       try {
         const existingTrees = JSON.parse(
           localStorage.getItem("ipe-trees") || "[]",
-        );
-        const treesWithDates = existingTrees.map((tree: any) => ({
+        ) as IpeTree[];
+        const treesWithDates = existingTrees.map((tree) => ({
           ...tree,
           timestamp: new Date(tree.timestamp),
         }));

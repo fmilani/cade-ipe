@@ -13,7 +13,13 @@ import {
 import { Camera, CheckCircle } from "lucide-react";
 import { reverseGeocode, type LocationInfo } from "@/lib/geocoding";
 import { useRouter } from "next/navigation";
+import { Layer } from "leaflet";
 
+declare global {
+  interface Window {
+    navigateToIpe: (id: string) => void;
+  }
+}
 interface IpeTree {
   id: string;
   imageUrl: string;
@@ -49,6 +55,7 @@ export default function IpesPage() {
   const [pendingPhoto, setPendingPhoto] = useState<File | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map>(null);
+  const userMarkerRef = useRef<L.Marker>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -101,28 +108,32 @@ export default function IpesPage() {
             );
 
             // Update user location marker
-            mapInstanceRef.current.eachLayer((layer: any) => {
-              if (
-                layer.options &&
-                layer.options.icon &&
-                layer.options.icon.options.className === "user-location-icon"
-              ) {
-                mapInstanceRef.current?.removeLayer(layer);
-              }
-            });
-
-            const L = await import("leaflet");
-            const userIcon = L.default.divIcon({
-              html: '<div style="background: #3B82F6; border: 2px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
-              className: "user-location-icon",
-              iconSize: [16, 16],
-              iconAnchor: [8, 8],
-            });
-
-            L.default
-              .marker([newLocation.lat, newLocation.lng], { icon: userIcon })
-              .addTo(mapInstanceRef.current)
-              .bindPopup("Sua localização atual");
+            userMarkerRef.current?.setLatLng([
+              newLocation.lat,
+              newLocation.lng,
+            ]);
+            // mapInstanceRef.current.eachLayer((layer) => {
+            //   if (
+            //     layer.options &&
+            //     layer.options.icon &&
+            //     layer.options.icon.options.className === "user-location-icon"
+            //   ) {
+            //     mapInstanceRef.current?.removeLayer(layer);
+            //   }
+            // });
+            //
+            // const L = await import("leaflet");
+            // const userIcon = L.default.divIcon({
+            //   html: '<div style="background: #3B82F6; border: 2px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
+            //   className: "user-location-icon",
+            //   iconSize: [16, 16],
+            //   iconAnchor: [8, 8],
+            // });
+            //
+            // L.default
+            //   .marker([newLocation.lat, newLocation.lng], { icon: userIcon })
+            //   .addTo(mapInstanceRef.current)
+            //   .bindPopup("Sua localização atual");
           }
         }
       } catch (error) {
@@ -384,11 +395,14 @@ export default function IpesPage() {
           iconAnchor: [8, 8],
         });
 
-        L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+          icon: userIcon,
+        })
           .addTo(map)
           .bindPopup("Sua localização atual");
+        userMarkerRef.current = userMarker;
       }
-      (window as any).navigateToIpe = (id: string) => {
+      window.navigateToIpe = (id: string) => {
         router.push(`/ipes/${id}`);
       };
     } catch (error) {
