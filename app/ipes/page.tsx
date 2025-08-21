@@ -66,6 +66,73 @@ export default function IpesPage() {
     };
 
     loadTreesAndLocation();
+
+    const locationUpdateInterval = setInterval(async () => {
+      try {
+        const position = await new Promise<GeolocationPosition>(
+          (resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 30000,
+            });
+          },
+        );
+
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        // Only update if location has changed significantly (more than ~10 meters)
+        if (
+          !userLocation ||
+          Math.abs(userLocation.lat - newLocation.lat) > 0.0001 ||
+          Math.abs(userLocation.lng - newLocation.lng) > 0.0001
+        ) {
+          console.log("Location changed, updating map...");
+          setUserLocation(newLocation);
+
+          // Update map center if map exists
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.setView(
+              [newLocation.lat, newLocation.lng],
+              mapInstanceRef.current.getZoom(),
+            );
+
+            // Update user location marker
+            mapInstanceRef.current.eachLayer((layer: any) => {
+              if (
+                layer.options &&
+                layer.options.icon &&
+                layer.options.icon.options.className === "user-location-icon"
+              ) {
+                mapInstanceRef.current?.removeLayer(layer);
+              }
+            });
+
+            const L = await import("leaflet");
+            const userIcon = L.default.divIcon({
+              html: '<div style="background: #3B82F6; border: 2px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
+              className: "user-location-icon",
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            });
+
+            L.default
+              .marker([newLocation.lat, newLocation.lng], { icon: userIcon })
+              .addTo(mapInstanceRef.current)
+              .bindPopup("Sua localização atual");
+          }
+        }
+      } catch (error) {
+        console.log("Periodic location update failed:", error);
+      }
+    }, 30000); // Update every 30 seconds
+
+    return () => {
+      clearInterval(locationUpdateInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -191,7 +258,7 @@ export default function IpesPage() {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
             timeout: 10000,
-            maximumAge: 300000,
+            maximumAge: 30000,
           });
         },
       );
