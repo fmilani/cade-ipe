@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Camera, CheckCircle } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle } from "lucide-react";
 import { reverseGeocode, type LocationInfo } from "@/lib/geocoding";
 import { useRouter } from "next/navigation";
 import { Layer } from "leaflet";
@@ -47,6 +47,7 @@ export default function IpesPage() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [showNameDialog, setShowNameDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [personName, setPersonName] = useState("");
   const [ipeColor, setIpeColor] = useState<"pink" | "white" | "yellow">(
@@ -59,6 +60,23 @@ export default function IpesPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  const checkForNearbyIpes = async (
+    latitude: number,
+    longitude: number,
+  ): Promise<boolean> => {
+    const existingTrees = JSON.parse(localStorage.getItem("ipe-trees") || "[]");
+
+    for (const tree of existingTrees) {
+      if (
+        Math.abs(tree.location.latitude - latitude) < 0.0001 &&
+        Math.abs(tree.location.longitude - longitude) < 0.0001
+      ) {
+        return true; // Found a nearby Ipê
+      }
+    }
+
+    return false; // No nearby Ipês found
+  };
   useEffect(() => {
     const loadTreesAndLocation = async () => {
       const existingTrees = JSON.parse(
@@ -163,9 +181,40 @@ export default function IpesPage() {
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    try {
+      console.log("Checking for nearby Ipês...");
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 30000,
+          });
+        },
+      );
+      const hasNearbyIpe = await checkForNearbyIpes(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
+      if (hasNearbyIpe) {
+        console.log("Found nearby Ipê, showing duplicate dialog");
+        setShowDuplicateDialog(true);
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
 
-    setPendingPhoto(file);
-    setShowNameDialog(true);
+      console.log("No nearby Ipês found, proceeding with photo capture");
+      setPendingPhoto(file);
+      setShowNameDialog(true);
+    } catch (error) {
+      console.error("Error checking location for duplicates:", error);
+      // If location check fails, still allow photo capture
+      setPendingPhoto(file);
+      setShowNameDialog(true);
+    }
   };
 
   const handlePhotoWithName = async () => {
@@ -547,6 +596,26 @@ export default function IpesPage() {
                 {isCapturing ? "Salvando..." : "Salvar Ipê"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <DialogContent className="sm:max-w-md z-[1002]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Ipê já existe aqui
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-foreground">
+              Já existe um Ipê registrado nesta localização (dentro de 10
+              metros). Tente fotografar um Ipê em outro local.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowDuplicateDialog(false)}>OK</Button>
           </div>
         </DialogContent>
       </Dialog>
