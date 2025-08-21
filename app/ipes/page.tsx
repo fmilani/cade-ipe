@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Camera, CheckCircle } from "lucide-react";
 import { reverseGeocode, type LocationInfo } from "@/lib/geocoding";
+import { useRouter } from "next/navigation";
 
 interface IpeTree {
   id: string;
@@ -49,6 +50,7 @@ export default function IpesPage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadTreesAndLocation = async () => {
@@ -293,12 +295,12 @@ export default function IpesPage() {
         };
 
         const popupContent = `
-          <div style="text-align: center; min-width: 200px;">
+          <div style="text-align: center; min-width: 200px;cursor: pointer;" onclick="window.navigateToIpe('${tree.id}')">
             <img src="${tree.imageUrl}" alt="Ipê" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />
             <div style="font-size: 12px; color: #666; margin-bottom: 4px;">${formatDate(tree.timestamp)}</div>
             ${tree.location.address ? `<div style="font-size: 12px; color: #666; margin-bottom: 4px;">${getSimplifiedAddress(tree.location.address)}</div>` : ""}
             ${tree.personName ? `<div style="font-size: 11px; color: #888; font-style: italic; margin-bottom: 8px;">por ${tree.personName}</div>` : ""}
-<a href="https://www.google.com/maps/dir/?api=1&destination=${tree.location.latitude},${tree.location.longitude}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #4285F4; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-top: 4px;">
+<a href="https://www.google.com/maps/dir/?api=1&destination=${tree.location.latitude},${tree.location.longitude}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #4285F4; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-top: 4px;" onclick="event.stopPropagation();">
               📍 Como chegar
             </a>
           </div>
@@ -319,6 +321,9 @@ export default function IpesPage() {
           .addTo(map)
           .bindPopup("Sua localização atual");
       }
+      (window as any).navigateToIpe = (id: string) => {
+        router.push(`/ipes/${id}`);
+      };
     } catch (error) {
       console.error("Error loading map:", error);
     }
